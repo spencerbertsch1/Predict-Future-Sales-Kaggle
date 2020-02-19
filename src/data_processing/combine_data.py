@@ -9,6 +9,7 @@ This file can be run as a python script by calling the main method at the bottom
 # native imports
 import argparse
 import path
+import datetime
 
 # package imports
 import pandas as pd
@@ -26,6 +27,18 @@ def import_data(path: str):
     items           = pd.read_csv(str(path + 'items.csv'))
     item_categories = pd.read_csv(str(path + 'item_categories.csv'))
     shops           = pd.read_csv(str(path + 'shops.csv'))
+    return(transactions, items, item_categories, shops)
+
+def format_data(transactions):
+    transactions.date = transactions.date.apply(lambda x: datetime.datetime.strptime(x, '%d.%m.%Y'))
+    # we can now look at the updated data type for the date feature
+    print(transactions.info())
+
+    #This line of code was borrowed from: https://www.kaggle.com/jagangupta/time-series-basics-exploring-traditional-ts
+    monthly_sales = transactions.groupby(["date_block_num", "shop_id", "item_id"])[
+        "date", "item_price", "item_cnt_day"].agg({"date": ["min", 'max'], "item_price": "mean", "item_cnt_day": "sum"})
+
+    print(monthly_sales.head(10))
 
 
 if __name__ == '__main__':
@@ -39,4 +52,7 @@ if __name__ == '__main__':
     print(import_path)
 
     # import data
-    import_data(path=import_path)
+    transactions, items, item_categories, shops = import_data(path=import_path)
+    format_data(transactions)
+
+
